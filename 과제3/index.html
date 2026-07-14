@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CONTACT MANAGEMENT SERVICE</title>
+    <style>
+        /* 💡 오리지널 Exocet의 비율과 가장 닮은 고전적이고 묵직한 'Cinzel' 서체와 서브 서체 로드 */
+        @import url('https://fonts.googleapis.com/css2?family=Almendra+SC&family=Cinzel:wght@500;700;800&family=Noto+Sans+KR:wght@300;400;500&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body, html {
+            height: 100%;
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #010102; /* 깊은 심연의 블랙 */
+            color: #bfa37a; /* 대시보드와 통일된 바랜 골드빛 */
+            overflow: hidden;
+        }
+
+        .wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #000;
+        }
+
+        /* 💡 배경 비디오 스타일링 */
+        .bg-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* 영상 비율을 유지하며 화면을 가득 채움 */
+            z-index: 0;       /* 가장 뒤에 배치 */
+            pointer-events: none; /* 마우스 클릭이 비디오에 막히지 않도록 설정 */
+        }
+
+        /* 화면 외곽을 완전히 먹어삼키는 강력한 어둠 그라데이션 */
+        .wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 25%, rgba(0, 0, 0, 0.9) 85%, #000000 100%);
+            z-index: 1; /* 비디오(0) 바로 위에 위치하여 영상 테두리를 어둡게 덮음 */
+            pointer-events: none;
+        }
+
+        /* 검은 안개 농도와 강도를 줄여 투명하게 개선 */
+        .fog-stage {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2; /* 암막 필터 위에 안개 배치 */
+            overflow: hidden;
+            pointer-events: none;
+            opacity: 0.22; /* 안개의 밀도를 줄여 배경이 훨씬 잘 보이게 설정 */
+        }
+
+        /* 첫 번째 안개: 거대하고 느리게 흐르는 투명한 먹구름 */
+        .fog-layer-1 {
+            position: absolute;
+            width: 300%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(10, 12, 16, 0.4) 25%, 
+                rgba(2, 3, 5, 0.5) 50%, 
+                transparent 75%, 
+                rgba(8, 10, 13, 0.4) 100%
+            );
+            filter: blur(80px);
+            animation: driftFog1 forwards 50s linear infinite;
+        }
+
+        /* 두 번째 안개: 바닥에서 은은하게 뿜어져 나오는 지옥의 핏빛 가스 */
+        .fog-layer-2 {
+            position: absolute;
+            width: 300%;
+            height: 130%;
+            top: -15%;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(55, 8, 8, 0.4) 30%, 
+                transparent 60%, 
+                rgba(20, 4, 4, 0.5) 80%, 
+                transparent 100%
+            );
+            filter: blur(70px);
+            animation: driftFog2 forwards 35s linear infinite;
+        }
+
+        @keyframes driftFog1 {
+            0% { transform: translate3d(0, 0, 0) scale(1); }
+            50% { transform: translate3d(-33.33%, 10px, 0) scale(1.1); }
+            100% { transform: translate3d(-66.66%, 0, 0) scale(1); }
+        }
+
+        @keyframes driftFog2 {
+            0% { transform: translate3d(-66.66%, 0, 0) rotate(0deg); }
+            50% { transform: translate3d(-33.33%, -15px, 0) rotate(1.5deg); }
+            100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+        }
+
+        /* 파티클 영역 */
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 3; 
+            pointer-events: none;
+        }
+
+        .container {
+            position: relative;
+            z-index: 4; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 440px;
+            padding: 20px;
+            margin-top: 80px; 
+        }
+
+        /* 다크 판타지 '불꽃' 테두리 적용 */
+        .login-box {
+            width: 100%;
+            background: rgba(5, 6, 8, 0.92);
+            border: 1px solid #4a0000;
+            box-shadow: 0 0 20px rgba(139, 0, 0, 0.6), inset 0 0 15px rgba(139, 0, 0, 0.3);
+            padding: 45px 35px;
+            position: relative;
+            backdrop-filter: blur(8px);
+            animation: floatingSoul 5.5s ease-in-out infinite;
+        }
+
+        @keyframes floatingSoul {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .login-box::before {
+            content: '';
+            position: absolute;
+            top: 4px; left: 4px; right: 4px; bottom: 4px;
+            border: 1px solid rgba(139, 0, 0, 0.15); 
+            pointer-events: none;
+        }
+
+        .form-section {
+            display: none;
+        }
+        .form-section.active {
+            display: block;
+        }
+
+        /* 타이틀에 '악마의 속삭임' 지옥불 일렁임 애니메이션(darkWhisper) 적용 */
+        .box-title {
+            font-family: 'Cinzel', serif;
+            font-size: 21px;
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: 3px;
+            margin-bottom: 35px;
+            color: #ebd7be;
+            animation: darkWhisper 6s infinite;
+        }
+
+        @keyframes darkWhisper {
+            0%, 100% { 
+                text-shadow: 0 0 4px #000, 0 0 10px rgba(139, 0, 0, 0.9), 0 0 20px rgba(255, 69, 0, 0.4); 
+                opacity: 1; 
+            }
+            50% { 
+                text-shadow: 0 0 25px rgba(255, 50, 0, 0.9), 0 0 35px rgba(255, 0, 0, 0.6); 
+                opacity: 0.95; 
+            }
+            52% { 
+                text-shadow: 0 0 6px rgba(139, 0, 0, 0.5); 
+                opacity: 0.85;
+            } 
+            54% { 
+                text-shadow: 0 0 20px rgba(255, 50, 0, 0.9); 
+                opacity: 1; 
+            }
+        }
+
+        .input-group {
+            margin-bottom: 22px;
+        }
+
+        .input-group label {
+            display: block;
+            font-family: 'Cinzel', serif;
+            font-size: 13px;
+            font-weight: 700;
+            color: #9c8369;
+            letter-spacing: 2px;
+            margin-bottom: 7px;
+            text-transform: uppercase;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            background: #040507;
+            border: 1px solid #473a2b;
+            padding: 12px 40px 12px 15px;
+            color: #fff;
+            font-size: 13px;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        .input-wrapper input:focus {
+            border-color: #8b0000; 
+            box-shadow: 0 0 10px rgba(139, 0, 0, 0.4);
+            background: #050507;
+        }
+
+        .input-wrapper::after {
+            content: '💀';
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            opacity: 0.15;
+            transition: opacity 0.3s;
+        }
+        .input-wrapper input:focus + ::after {
+            opacity: 0.5;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(to bottom, #2b1414, #120909);
+            border: 1px solid #661111;
+            color: #ccbba0;
+            font-family: 'Cinzel', serif;
+            font-size: 14px;
+            font-weight: 700;
+            padding: 15px;
+            letter-spacing: 3px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.9);
+            margin-top: 15px;
+        }
+
+        .btn-submit:hover {
+            border-color: #ff3333; 
+            color: #fff; 
+            box-shadow: 0 0 18px rgba(255, 0, 0, 0.65), inset 0 0 15px rgba(139, 0, 0, 0.8);
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.9), 0 0 25px #ff1a00;
+        }
+
+        .links {
+            margin-top: 30px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .links a {
+            color: #8c775c;
+            text-decoration: none;
+            font-size: 11px;
+            letter-spacing: 2px;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+        }
+
+        .links a:hover {
+            color: #ff3333; 
+            text-shadow: 0 0 8px rgba(255, 0, 0, 0.7);
+        }
+
+        .btn-exit {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            background: #120909;
+            border: 1px solid #661111;
+            color: #ccbba0;
+            font-family: 'Cinzel', serif;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 9px 28px;
+            cursor: pointer;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+            z-index: 4;
+        }
+
+        .btn-exit:hover {
+            border-color: #ff3333; 
+            color: #fff; 
+            box-shadow: 0 0 12px rgba(255, 0, 0, 0.6), inset 0 0 8px rgba(139, 0, 0, 0.6); 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="wrapper">
+        <video class="bg-video" autoplay loop muted playsinline id="mainBGVideo" preload="auto">
+            <source src="/video/stream" type="video/mp4">
+        </video>
+
+        <div class="fog-stage">
+            <div class="fog-layer-1"></div>
+            <div class="fog-layer-2"></div>
+        </div>
+
+        <div id="particles-js"></div>
+
+        <div class="container">
+            <div class="login-box">
+
+                <div id="loginSection" class="form-section active">
+                    <div class="box-title">SIGN IN TO REALM</div>
+                    <form id="loginForm">
+                        <div class="input-group">
+                            <label for="username">Username</label>
+                            <div class="input-wrapper">
+                                <input type="text" id="username" autocomplete="off" required>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="password">Password</label>
+                            <div class="input-wrapper">
+                                <input type="password" id="password" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-submit">ENTER THE REALM</button>
+                    </form>
+                    <div class="links">
+                        <a href="#" onclick="toggleView('signup')">Create an Account</a>
+                    </div>
+                </div>
+
+                <div id="signupSection" class="form-section">
+                    <div class="box-title">CREATE NEW ACCOUNT</div>
+                    <form id="signupForm">
+                        <div class="input-group">
+                            <label for="signupUsername">New Username</label>
+                            <div class="input-wrapper">
+                                <input type="text" id="signupUsername" autocomplete="off" required>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="signupPassword">New Password</label>
+                            <div class="input-wrapper">
+                                <input type="password" id="signupPassword" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-submit">REGISTER ACCOUNT</button>
+                    </form>
+                    <div class="links">
+                        <a href="#" onclick="toggleView('login')">Back to Sign In</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <button class="btn-exit" onclick="alert('게임을 종료합니다.')">EXIT</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        // 💡 자동재생 강제 보정 스크립트
+        window.addEventListener('load', () => {
+            const video = document.getElementById('mainBGVideo');
+            if (video) {
+                video.muted = true;
+                video.play().catch(() => {
+                    document.addEventListener('click', () => video.play(), { once: true });
+                });
+            }
+        });
+
+        particlesJS("particles-js", {
+            "particles": {
+                "number": {
+                    "value": 95, 
+                    "density": { "enable": true, "value_area": 800 }
+                },
+                "color": {
+                    "value": "#ff3300" 
+                },
+                "shape": {
+                    "type": "circle"
+                },
+                "opacity": {
+                    "value": 0.6, 
+                    "random": true, 
+                    "anim": { "enable": true, "speed": 2, "opacity_min": 0.05, "sync": false }
+                },
+                "size": {
+                    "value": 3.8,
+                    "random": true, 
+                    "anim": { "enable": false }
+                },
+                "line_linked": {
+                    "enable": false 
+                },
+                "move": {
+                    "enable": true,
+                    "speed": 1.8, 
+                    "direction": "top", 
+                    "random": true,
+                    "straight": false,
+                    "out_mode": "out",
+                    "bounce": false
+                }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": {
+                    "onhover": { "enable": false }, 
+                    "onclick": { "enable": false }
+                }
+            },
+            "retina_detect": true
+        });
+
+        function toggleView(view) {
+            if (view === 'signup') {
+                document.getElementById('loginSection').classList.remove('active');
+                document.getElementById('signupSection').classList.add('active');
+            } else {
+                document.getElementById('signupSection').classList.remove('active');
+                document.getElementById('loginSection').classList.add('active');
+            }
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', handleLogin);
+        document.getElementById('signupForm').addEventListener('submit', handleSignup);
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const usernameInput = document.getElementById('username').value;
+            const passwordInput = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: usernameInput, password: passwordInput })
+                });
+
+                if (response.ok) {
+                    alert(usernameInput + ' 님, 성역에 입장하신 것을 환영합니다.');
+                    window.location.href = '/static/dashboard.html';
+                } else {
+                    const errorData = await response.json();
+                    alert('인증 거부: ' + (errorData.detail || '아이디 또는 비밀번호가 올바르지 않습니다.'));
+                }
+            } catch (error) {
+                alert('서버와 통신 오류가 발생했습니다.');
+            }
+        }
+
+        async function handleSignup(e) {
+            e.preventDefault();
+            const usernameInput = document.getElementById('signupUsername').value;
+            const passwordInput = document.getElementById('signupPassword').value;
+
+            try {
+                const response = await fetch('/auth/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: usernameInput, password: passwordInput })
+                });
+
+                const data = await response.json();
+
+                if (response.status === 201) {
+                    alert(data.message || '회원가입이 성공적으로 완료되었습니다! (기본 카테고리 3종이 지급되었습니다)');
+                    document.getElementById('signupForm').reset();
+                    toggleView('login');
+                } else {
+                    alert('가입 거부: ' + (data.detail || '가입 도중 에러가 발생했습니다.'));
+                }
+            } catch (error) {
+                alert('서버와 통신 오류가 발생했습니다.');
+            }
+        }
+    </script>
+</body>
+</html>
