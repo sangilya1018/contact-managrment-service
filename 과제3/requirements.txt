@@ -1,5 +1,0 @@
-fastapi
-uvicorn
-sqlalchemy
-pwdlib[argon2]
-python-multipart
