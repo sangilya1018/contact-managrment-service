@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CONTACT MANAGEMENT SERVICE - Dashboard</title>
+    <style>
+        /* 💡 로그인 화면과 통일된 오리지널 디아블로 감성의 묵직한 'Cinzel' 서체 셋업 */
+        @import url('https://fonts.googleapis.com/css2?family=Almendra+SC&family=Cinzel:wght@500;700;800&family=Noto+Sans+KR:wght@300;400;500&display=swap');
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body, html {
+            height: 100%;
+            font-family: 'Noto Sans KR', sans-serif;
+            background: #020203; /* 동영상 로드 전 기본 배경색 */
+            color: #bfa37a;
+            overflow-x: hidden;
+        }
+        
+        /* 🎥 동영상 배경 스타일 설정 */
+        #bg-video {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: 0; /* 모든 레이어의 가장 뒤에 위치 */
+            transform: translate(-50%, -50%);
+            object-fit: cover; /* 화면 비율에 맞게 꽉 채움 */
+            pointer-events: none;
+        }
+
+        body::before {
+            content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 30%, rgba(0, 0, 0, 0.9) 100%);
+            z-index: 1; pointer-events: none;
+        }
+
+        /* 💨 대시보드 전용 배경 안개 레이어 스타일 */
+        .fog-stage {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            overflow: hidden;
+            pointer-events: none;
+            opacity: 0.16; /* 데이터를 보기 편하게 투명도를 0.16으로 은은하게 최적화 */
+        }
+
+        .fog-layer-1 {
+            position: absolute;
+            width: 300%;
+            height: 100%;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(10, 12, 16, 0.4) 25%,
+                rgba(2, 3, 5, 0.5) 50%,
+                transparent 75%,
+                rgba(8, 10, 13, 0.4) 100%
+            );
+            filter: blur(80px);
+            animation: driftFog1 forwards 50s linear infinite;
+        }
+
+        .fog-layer-2 {
+            position: absolute;
+            width: 300%;
+            height: 130%;
+            top: -15%;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(55, 8, 8, 0.4) 30%,
+                transparent 60%,
+                rgba(20, 4, 4, 0.5) 80%,
+                transparent 100%
+            );
+            filter: blur(70px);
+            animation: driftFog2 forwards 35s linear infinite;
+        }
+
+        @keyframes driftFog1 {
+            0% { transform: translate3d(0, 0, 0) scale(1); }
+            50% { transform: translate3d(-33.33%, 10px, 0) scale(1.1); }
+            100% { transform: translate3d(-66.66%, 0, 0) scale(1); }
+        }
+
+        @keyframes driftFog2 {
+            0% { transform: translate3d(-66.66%, 0, 0) rotate(0deg); }
+            50% { transform: translate3d(-33.33%, -15px, 0) rotate(1.5deg); }
+            100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+        }
+
+        /* 🔥 지옥불 파티클 컨테이너 고정 */
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 3;
+            pointer-events: none;
+        }
+        
+        /* 실제 콘텐츠 레이아웃의 z-index를 이펙트 위로 올림 */
+        .main-layout {
+            position: relative;
+            z-index: 10;
+            max-width: 1400px; margin: 40px auto; padding: 20px;
+        }
+        
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid #4a1111; padding-bottom: 15px; margin-bottom: 30px;
+        }
+        
+        /* 💡 이펙트 1: 메인 타이틀 '악마의 속삭임' 깜빡임 및 Cinzel 교체 */
+        h1 {
+            font-family: 'Cinzel', 'Almendra SC', serif; font-size: 24px; font-weight: 700; letter-spacing: 3px; color: #fcead2;
+            animation: darkWhisper 6s infinite; /* 불규칙한 지옥불 일렁임 애니메이션 추가 */
+        }
+
+        @keyframes darkWhisper {
+            0%, 100% {
+                text-shadow: 0 0 4px #000, 0 0 10px rgba(139, 0, 0, 0.9), 0 0 20px rgba(255, 69, 0, 0.4);
+                opacity: 1;
+            }
+            50% {
+                text-shadow: 0 0 25px rgba(255, 50, 0, 0.9), 0 0 35px rgba(255, 0, 0, 0.6);
+                opacity: 0.95;
+            }
+            52% {
+                text-shadow: 0 0 6px rgba(139, 0, 0, 0.5);
+                opacity: 0.85; /* 순간적으로 찌릿하며 어두워짐 */
+            }
+            54% {
+                text-shadow: 0 0 20px rgba(255, 50, 0, 0.9);
+                opacity: 1;
+            }
+        }
+
+        .user-info { font-family: 'Almendra SC', serif; font-size: 14px; color: #8c775c; letter-spacing: 1px; }
+        
+        /* 로그아웃 버튼 호버 효과 고도화 */
+        .btn-logout {
+            background: #120909; border: 1px solid #661111; color: #ccbba0;
+            padding: 5px 15px; cursor: pointer; font-family: 'Almendra SC', serif; font-size: 12px; margin-left: 10px;
+            letter-spacing: 1px; transition: all 0.3s;
+        }
+        .btn-logout:hover {
+            border-color: #ff3333; color: #fff;
+            box-shadow: 0 0 12px rgba(255, 0, 0, 0.6), inset 0 0 8px rgba(139, 0, 0, 0.6);
+        }
+        
+        .grid-container { display: grid; grid-template-columns: 320px 1fr 340px; gap: 25px; }
+        
+        /* 💡 이펙트 2: 패널 전체에 미세한 영혼의 숨결(Hovering) 효과 적용 */
+        .panel {
+            background: rgba(5, 6, 8, 0.92); border: 1px solid #3d3326;
+            border-image: linear-gradient(to bottom, #4a1111 0%, #1a140f 40%, #0f0b07 100%) 1;
+            padding: 22px; box-shadow: 0 15px 35px rgba(0,0,0,0.9);
+            animation: floatingSoul 5s ease-in-out infinite; /* 은은하게 둥둥 뜨는 생동감 부여 */
+        }
+        
+        /* 패널마다 움직임의 타이밍을 다르게 주어 자연스럽게 연출 */
+        .grid-container .panel:nth-child(2) { animation-delay: 0.5s; animation-duration: 5.5s; }
+        .grid-container .panel:nth-child(3) { animation-delay: 1s; animation-duration: 6s; }
+
+        @keyframes floatingSoul {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); } /* 화면 오브젝트가 5px씩 유기적으로 움직임 */
+        }
+        
+        /* 각 섹션 타이틀 서체 변경 */
+        .panel-title {
+            font-family: 'Cinzel', 'Almendra SC', serif; font-size: 14px; font-weight: 700;
+            letter-spacing: 2px; margin-bottom: 20px; color: #e6dcc8; border-left: 3px solid #8b0000; padding-left: 10px;
+            text-shadow: 0 0 5px rgba(139, 0, 0, 0.6);
+        }
+        
+        .search-container {
+            display: flex; gap: 10px; margin-bottom: 20px;
+            background: rgba(4, 5, 7, 0.9); border: 1px solid #4a1111; padding: 8px;
+        }
+        .search-input {
+            flex: 1; background: transparent; border: none; padding: 8px 12px; color: #fff; font-size: 13px; outline: none;
+        }
+        
+        /* 인라인 검색/추가 버튼 호버 튜닝 */
+        .btn-search {
+            background: #2b1414; border: 1px solid #544431; color: #ccbba0; font-family: 'Almendra SC', serif;
+            padding: 0 15px; cursor: pointer; font-size: 12px; letter-spacing: 1px; transition: all 0.3s;
+        }
+        .btn-search:hover {
+            border-color: #ff3333; color: #fff; background: #4a1111;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-family: 'Almendra SC', serif; font-size: 12px; color: #8c775c; margin-bottom: 5px; text-transform: uppercase; }
+        .form-group input, .form-group select {
+            width: 100%; background: #040507; border: 1px solid #473a2b; padding: 10px; color: #fff; font-size: 13px; outline: none;
+        }
+        .form-group input:focus, .form-group select:focus { border-color: #8b0000; box-shadow: 0 0 10px rgba(139, 0, 0, 0.4); }
+        
+        /* 💡 이펙트 3: 메인 액션 버튼 '타오르는 지옥불' 호버 적용 */
+        .btn-action {
+            width: 100%; background: linear-gradient(to bottom, #2b1414, #120909);
+            border: 1px solid #661111; color: #ccbba0; padding: 12px; font-family: 'Cinzel', 'Almendra SC', serif; font-size: 13px; font-weight: 700; cursor: pointer; letter-spacing: 2px;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-action:hover {
+            border-color: #ff3333; color: #fff;
+            /* 내부와 외부에 피어오르는 핏빛 발광 주입 */
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.6), inset 0 0 15px rgba(139, 0, 0, 0.8);
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 0 0 20px #ff3300;
+        }
+        
+        .contact-table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 13px; }
+        .contact-table th, .contact-table td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #291212; }
+        .contact-table th { font-family: 'Almendra SC', serif; color: #8c775c; font-size: 12px; letter-spacing: 1px; background: rgba(4,5,7,0.8); }
+        
+        /* 테이블 행 호버 시 은은한 붉은 핏빛 연기 효과 확장 */
+        .contact-table tr { transition: background 0.3s ease; }
+        .contact-table tr:hover { background: rgba(139, 0, 0, 0.18); }
+        
+        .badge { background: #2b1414; border: 1px solid #5a1212; color: #ccbba0; padding: 3px 7px; font-size: 11px; font-family: 'Noto Sans KR', sans-serif; }
+        
+        .btn-edit-inline { background: transparent; border: 1px solid #3b5943; color: #78ab82; padding: 3px 8px; cursor: pointer; font-size: 11px; margin-right: 5px; transition: all 0.2s; }
+        .btn-edit-inline:hover { background: #1e3324; color: #fff; box-shadow: 0 0 8px rgba(120, 171, 130, 0.4); }
+        
+        .btn-del { background: transparent; border: 1px solid #7a2020; color: #ff6b6b; padding: 3px 8px; cursor: pointer; font-size: 11px; transition: all 0.2s; }
+        .btn-del:hover { background: #5a1515; color: #fff; border-color: #ff3333; box-shadow: 0 0 8px rgba(255, 51, 51, 0.4); }
+
+        .category-manage-list { list-style: none; margin-bottom: 20px; max-height: 300px; overflow-y: auto; }
+        .category-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 5px; border-bottom: 1px solid #291212; }
+        .category-name { font-size: 13px; color: #d1be9b; }
+        .category-btns { display: flex; gap: 5px; }
+    </style>
+</head>
+<body>
+    <video autoplay loop muted playsinline id="bg-video">
+        <source src="/static/bg_dashboard.mp4" type="video/mp4">
+    </video>
+
+    <div class="fog-stage">
+        <div class="fog-layer-1"></div>
+        <div class="fog-layer-2"></div>
+    </div>
+    <div id="particles-js"></div>
+    <div class="main-layout">
+        <header>
+            <h1>CONTACT MANAGEMENT SERVICE</h1>
+            <div class="user-info">
+                <span id="currentUserName">Loading...</span> 님 권한 성역 정보창
+                <button class="btn-logout" onclick="logout()">LOGOUT</button>
+            </div>
+        </header>
+        <div class="grid-container">
+            <div class="panel">
+                <div class="panel-title" id="formPanelTitle">Add New Contact</div>
+                <form id="contactForm">
+                    <input type="hidden" id="editContactId" value="">
+                    <div class="form-group"><label>Category</label><select id="contactCategory" required></select></div>
+                    <div class="form-group"><label>Name (Max 5 chars)</label><input type="text" id="contactName" maxlength="5" placeholder="이름 입력" required></div>
+                    <div class="form-group"><label>Phone (11 digits)</label><input type="text" id="contactPhone" placeholder="01012345678" required></div>
+                    <div class="form-group"><label>Address</label><input type="text" id="contactAddr" placeholder="주소 입력 (선택)"></div>
+                    <button type="submit" class="btn-action" id="btnSubmitContact">BIND CONTACT</button>
+                    <button type="button" class="btn-action" id="btnCancelEdit" style="display:none; margin-top:8px; background: #222;" onclick="resetContactForm()">CANCEL EDIT</button>
+                </form>
+            </div>
+            <div class="panel">
+                <div class="panel-title">Secured Contact Ledger</div>
+                <div class="search-container">
+                    <input type="text" id="searchName" class="search-input" placeholder="검색할 이름을 입력하세요 (공백 시 전체조회)">
+                    <button class="btn-search" onclick="loadContacts()">SEARCH</button>
+                </div>
+                <table class="contact-table">
+                    <thead><tr><th>Category</th><th>Name</th><th>Phone Number</th><th>Address</th><th style="width:120px;">Action</th></tr></thead>
+                    <tbody id="contactList"></tbody>
+                </table>
+            </div>
+            <div class="panel">
+                <div class="panel-title">Category Ledger (SCR-003)</div>
+                <ul class="category-manage-list" id="categoryManageList"></ul>
+                <div class="panel-title" style="border-left: 3px solid #8b0000; margin-top:25px; margin-bottom:15px; font-size:12px;">Forge New Category</div>
+                <div class="form-group" style="display:flex; gap:8px;"><input type="text" id="newCategoryName" placeholder="새 카테고리명 (1~10자)" style="flex:1;"><button class="btn-search" style="height:38px;" onclick="createCategory()">ADD</button></div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        particlesJS("particles-js", { "particles": { "number": { "value": 80, "density": { "enable": true, "value_area": 900 } }, "color": { "value": "#ff3300" }, "shape": { "type": "circle" }, "opacity": { "value": 0.5, "random": true, "anim": { "enable": true, "speed": 1.5, "opacity_min": 0.05, "sync": false } }, "size": { "value": 3.5, "random": true, "anim": { "enable": false } }, "line_linked": { "enable": false }, "move": { "enable": true, "speed": 1.5, "direction": "top", "random": true, "straight": false, "out_mode": "out", "bounce": false } }, "interactivity": { "detect_on": "canvas", "events": { "onhover": { "enable": false }, "onclick": { "enable": false } } }, "retina_detect": true });
+        let allCategories = [];
+        let currentContacts = [];
+        document.addEventListener('DOMContentLoaded', () => { loadUser(); initData(); });
+        async function initData() { await loadCategories(); await loadContacts(); }
+        async function loadUser() {
+            const res = await fetch('/auth/me');
+            if(!res.ok) { alert('세션이 만료되었습니다.'); window.location.href = '/'; return; }
+            const user = await res.json();
+            document.getElementById('currentUserName').innerText = user.username;
+        }
+        async function loadCategories() {
+            const res = await fetch('/categories');
+            if(res.ok) {
+                allCategories = await res.json();
+                const select = document.getElementById('contactCategory');
+                select.innerHTML = '';
+                allCategories.forEach(cat => { select.innerHTML += `<option value="${cat.id}">${cat.name}</option>`; });
+                const catManageList = document.getElementById('categoryManageList');
+                catManageList.innerHTML = '';
+                allCategories.forEach(cat => {
+                    catManageList.innerHTML += `<li class="category-item"><span class="category-name">${cat.name}</span><div class="category-btns"><button class="btn-edit-inline" onclick="editCategoryInline(${cat.id}, '${cat.name}')">수정</button><button class="btn-del" onclick="deleteCategory(${cat.id})">삭제</button></div></li>`;
+                });
+            }
+        }
+        async function loadContacts() {
+            const searchQuery = document.getElementById('searchName').value.trim();
+            const res = await fetch('/contacts');
+            if(res.ok) {
+                let contacts = await res.json();
+                if(searchQuery) contacts = contacts.filter(c => c.name.includes(searchQuery));
+                currentContacts = contacts;
+                const catMap = {}; allCategories.forEach(c => catMap[c.id] = c.name);
+                const tbody = document.getElementById('contactList');
+                tbody.innerHTML = '';
+                if(contacts.length === 0) { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#7a6851; padding:20px;">일치하는 기록을 찾을 수 없습니다.</td></tr>`; return; }
+                contacts.forEach((con, index) => {
+                    tbody.innerHTML += `<tr><td><span class="badge">${catMap[con.category_id] || '기타'}</span></td><td style="color:#fff; font-weight:bold;">${con.name}</td><td>${con.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')}</td><td>${con.addr || '-'}</td><td><button class="btn-edit-inline" onclick="startEditContactByIndex(${index})">수정</button><button class="btn-del" onclick="deleteContact(${con.id})">삭제</button></td></tr>`;
+                });
+            }
+        }
+        function startEditContactByIndex(index) {
+            const con = currentContacts[index];
+            if (!con) return;
+            document.getElementById('formPanelTitle').innerText = "Update Contact";
+            document.getElementById('editContactId').value = con.id;
+            document.getElementById('contactCategory').value = con.category_id;
+            document.getElementById('contactName').value = con.name;
+            
+            // 백엔드 규격에 완벽히 대응하기 위해 특수문자/하이픈을 제외한 오직 숫자만 매핑합니다.
+            document.getElementById('contactPhone').value = con.phone.replace(/[^0-9]/g, '');
+            
+            document.getElementById('contactAddr').value = con.addr || '';
+            document.getElementById('btnSubmitContact').innerText = "UPDATE SYSTEM";
+            document.getElementById('btnCancelEdit').style.display = "block";
+        }
+        
+        // 🛠️ 모든 수정 실패 원인을 분석하고, 백엔드로부터 '번호 중복'이나 기타 상세 에러를 읽어와 팝업창에 똑똑하게 띄워주는 이벤트 리스너입니다.
+        document.getElementById('contactForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const editId = document.getElementById('editContactId').value;
+            
+            const catVal = document.getElementById('contactCategory').value;
+            const categoryId = isNaN(catVal) ? catVal : parseInt(catVal);
+
+            // 공백 및 하이픈을 완벽히 제거한 '010XXXXXXXX' 순수 숫자 형태만 전송합니다.
+            let numericPhone = document.getElementById('contactPhone').value.trim().replace(/[^0-9]/g, '');
+
+            const payload = { 
+                category_id: categoryId, 
+                name: document.getElementById('contactName').value.trim(), 
+                phone: numericPhone, 
+                addr: document.getElementById('contactAddr').value.trim() || null 
+            };
+            
+            let res;
+            if (editId) {
+                // 백엔드가 매핑 중인 모든 엔드포인트 후보군에 안전하게 순수 숫자 payloads만 전달하여 수정 시도
+                const endpoints = [
+                    { url: `/contacts/${editId}`, method: 'PUT' },
+                    { url: `/contacts/${editId}`, method: 'PATCH' },
+                    { url: `/contacts/${editId}/`, method: 'PUT' },
+                    { url: `/contacts/${editId}/`, method: 'PATCH' },
+                    { url: `/contacts/`, method: 'PUT', data: { id: parseInt(editId), ...payload } },
+                    { url: `/contacts/`, method: 'PATCH', data: { id: parseInt(editId), ...payload } }
+                ];
+
+                let success = false;
+                let finalResponse = null;
+
+                for (let config of endpoints) {
+                    try {
+                        const currentPayload = config.data ? config.data : payload;
+                        res = await fetch(config.url, { 
+                            method: config.method, 
+                            headers: { 'Content-Type': 'application/json' }, 
+                            body: JSON.stringify(currentPayload) 
+                        });
+                        
+                        finalResponse = res;
+                        if (res.ok || res.status === 200 || res.status === 201 || res.status === 204) {
+                            success = true;
+                            break;
+                        }
+                    } catch (err) {
+                        console.error("Endpoint test error:", err);
+                    }
+                }
+                
+                // 수정 실패 시 서버의 에러 원인 분석 호출
+                if (!success && finalResponse) {
+                    await handleBackendError(finalResponse, "수정");
+                    return;
+                }
+                
+            } else {
+                // 신규 등록 시도
+                res = await fetch('/contacts/', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(payload) 
+                });
+                
+                if (!(res.ok || res.status === 201 || res.status === 200)) {
+                    await handleBackendError(res, "등록");
+                    return;
+                }
+            }
+            
+            alert(editId ? '정보가 성공적으로 수정되었습니다.' : '새로운 연락처가 바인딩되었습니다.'); 
+            resetContactForm(); 
+            loadContacts();
+        });
+
+        // 백엔드가 전송하는 상세 에러(번호 중복, 유효성 위반 등)를 정확하게 파싱하여 알림창으로 표출하는 고정밀 에러 핸들러
+        async function handleBackendError(response, actionType) {
+            let errorMsg = "";
+
+            try {
+                const errDetail = await response.json();
+                
+                if (errDetail && errDetail.detail) {
+                    if (Array.isArray(errDetail.detail)) {
+                        errorMsg = errDetail.detail.map(err => {
+                            let field = err.loc ? err.loc[err.loc.length - 1] : "데이터";
+                            return `- [${field}] : ${err.msg}`;
+                        }).join('\n');
+                    } else if (typeof errDetail.detail === "string") {
+                        errorMsg = `- ${errDetail.detail}`;
+                    } else {
+                        errorMsg = `- ${JSON.stringify(errDetail.detail)}`;
+                    }
+                } else if (errDetail && errDetail.message) {
+                    errorMsg = `- ${errDetail.message}`;
+                } else {
+                    errorMsg = `- ${JSON.stringify(errDetail)}`;
+                }
+            } catch (e) {
+                try {
+                    const rawText = await response.text();
+                    errorMsg = rawText.length < 150 ? `- ${rawText}` : `- HTTP ${response.status} Error`;
+                } catch (innerErr) {
+                    errorMsg = `- 네트워크 처리 오류 (HTTP ${response.status})`;
+                }
+            }
+
+            const lowerMsg = errorMsg.toLowerCase();
+            if (lowerMsg.includes("already") || lowerMsg.includes("duplicate") || lowerMsg.includes("unique") || lowerMsg.includes("exists") || lowerMsg.includes("이미 등록") || lowerMsg.includes("중복")) {
+                alert(`⚠️ [중복 오류]\n\n이미 등록되어 있거나 다른 회원이 사용 중인 번호입니다.\n다른 전화번호를 입력해주세요.\n\n${errorMsg}`);
+            } else {
+                alert(`⚠️ [${actionType} 실패]\n\n${errorMsg}`);
+            }
+        }
+
+        function resetContactForm() { document.getElementById('formPanelTitle').innerText = "Add New Contact"; document.getElementById('editContactId').value = ""; document.getElementById('contactForm').reset(); document.getElementById('btnSubmitContact').innerText = "BIND CONTACT"; document.getElementById('btnCancelEdit').style.display = "none"; }
+        async function deleteContact(id) { if(!confirm('해당 연락처 기록을 영구 파기하시겠습니까?')) return; const res = await fetch(`/contacts/${id}`, { method: 'DELETE' }); if(res.ok) loadContacts(); }
+        async function createCategory() { const nameInput = document.getElementById('newCategoryName').value.trim(); if(!nameInput) return alert('카테고리 이름을 입력하세요.'); const res = await fetch('/categories/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: nameInput }) }); if(res.status === 201 || res.ok) { document.getElementById('newCategoryName').value = ''; initData(); } else { alert('생성에 실패했습니다.'); } }
+        
+        // 🛠️ [카테고리 수정 - 핵심 개선] PUT/PATCH 및 슬래시 유무 다중 대응 우회 엔진 장착
+        async function editCategoryInline(id, currentName) {
+            const newName = prompt('변경할 카테고리 이름을 입력하세요:', currentName);
+            if(!newName || newName.trim() === currentName) return;
+
+            const payload = { name: newName.trim() };
+            const endpoints = [
+                { url: `/categories/${id}`, method: 'PATCH' },
+                { url: `/categories/${id}`, method: 'PUT' },
+                { url: `/categories/${id}/`, method: 'PATCH' },
+                { url: `/categories/${id}/`, method: 'PUT' }
+            ];
+
+            let success = false;
+            let finalResponse = null;
+
+            for (let config of endpoints) {
+                try {
+                    const res = await fetch(config.url, { 
+                        method: config.method, 
+                        headers: { 'Content-Type': 'application/json' }, 
+                        body: JSON.stringify(payload) 
+                    });
+                    finalResponse = res;
+                    if (res.ok || res.status === 200 || res.status === 204) {
+                        success = true;
+                        break;
+                    }
+                } catch (err) {
+                    console.error("Category update attempt failed: ", err);
+                }
+            }
+
+            if(success) {
+                initData();
+            } else {
+                let errorDetails = "서버 에러가 발생했습니다.";
+                if(finalResponse) {
+                    try {
+                        const jsonErr = await finalResponse.json();
+                        errorDetails = jsonErr.detail ? JSON.stringify(jsonErr.detail) : JSON.stringify(jsonErr);
+                    } catch(e) {
+                        try { errorDetails = await finalResponse.text(); } catch(inner) {}
+                    }
+                }
+                alert(`카테고리 수정에 실패했습니다.\n[이유]: ${errorDetails}`);
+            }
+        }
+
+        // 🛠️ [카테고리 삭제 - 개선] 삭제 시 경로 꼬리 슬래시 대응 추가
+        async function deleteCategory(id) {
+            if(!confirm('카테고리를 파기하시겠습니까?')) return;
+            
+            let res = await fetch(`/categories/${id}`, { method: 'DELETE' });
+            if(!res.ok) {
+                res = await fetch(`/categories/${id}/`, { method: 'DELETE' });
+            }
+
+            if(res.ok) {
+                initData();
+            } else {
+                alert('카테고리 삭제에 실패했습니다.');
+            }
+        }
+
+        async function logout() { await fetch('/auth/logout', { method: 'POST' }); window.location.href = '/'; }
+    </script>
+</body>
+</html>
